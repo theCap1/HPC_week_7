@@ -238,3 +238,90 @@ void triad_high( uint64_t         i_n_values,
 ```
 
 Testing was done within the `triad_driver.cpp`. For the different SVE vector lengths of 128, 256, 512, 1024 and 2048 bits array sizes of 13, 16, 25 and 50 worked without any problems.
+
+#### 8.3 SVE2
+
+In this exercise the task was to demonstrate the function of the instructions `FMLALT`, `FMLALB` and `EOR` of the SVE2 instruction set. This demonstration is implemented in the driver `sve2_driver.cpp`.
+The instructions `FMLALT` and `FMLALB` have very similar effects. they take two sve registers that store half precision values inside and widens the size of every other pipeline to word size. Then it does a FMLA operation with these two registers as multiplicants and another register that stores word values as addend. The result is then stored in the register that had word precision in the first place.
+`FMLALT` widens the odd numbered values and `FMLALT` on the other hand the even numbered values of the half precision source registers. The following output shows this:
+
+<details>
+  <summary> Output of behavior illustration of FMLALB </summary>
+
+```log
+[sven@scalable week_07]$ armie -msve-vector-bits=256 -- ./build/sve2 1
+After fmlalb: A/ B index / i_a[i] / i_b[i] / io_c[i] / C index
+0 / 0 / 20 / 0 / 0
+1 / 3 / 19
+2 / 6 / 18 / 109 / 1
+3 / 9 / 17
+4 / 12 / 16 / 194 / 2
+5 / 15 / 15
+6 / 18 / 14 / 255 / 3
+7 / 21 / 13
+8 / 24 / 12 / 292 / 4
+9 / 27 / 11
+10 / 30 / 10 / 305 / 5
+11 / 33 / 9
+12 / 36 / 8 / 294 / 6
+13 / 39 / 7
+14 / 42 / 6 / 259 / 7
+15 / 45 / 5
+16 / 48 / 4 / 8 / 8
+17 / 51 / 3
+18 / 54 / 2 / 9 / 9
+19 / 57 / 1 
+```
+
+</details>
+
+</br>
+<details>
+  <summary> Output of behavior illustration of FMLALT</summary>
+
+```log
+[sven@scalable week_07]$ armie -msve-vector-bits=256 -- ./build/sve2 0
+After fmlalt: A/ B index / i_a[i] / i_b[i] / io_c[i] / C index
+0 / 0 / 20
+1 / 3 / 19 / 57 / 0
+2 / 6 / 18
+3 / 9 / 17 / 154 / 1
+4 / 12 / 16
+5 / 15 / 15 / 227 / 2
+6 / 18 / 14
+7 / 21 / 13 / 276 / 3
+8 / 24 / 12
+9 / 27 / 11 / 301 / 4
+10 / 30 / 10
+11 / 33 / 9 / 302 / 5
+12 / 36 / 8
+13 / 39 / 7 / 279 / 6
+14 / 42 / 6
+15 / 45 / 5 / 232 / 7
+16 / 48 / 4
+17 / 51 / 3 / 8 / 8
+18 / 54 / 2
+19 / 57 / 1 / 9 / 9
+```
+
+</details>
+
+</br>
+
+The `EOR3` operation is simply a vectorial double XOR operation. It takes the values of three input registers and applies the double XOR operation on them. The result is stored in the first supplied register. This behavior can be observed from the following output where the output bit is only 1 when out of the three values either one or three of them have the value 1.
+
+<details>
+  <summary> Output of behavior illustration of EOR3 </summary>
+
+```log
+[sven@scalable week_07]$ armie -msve-vector-bits=256 -- ./build/sve2 2
+After EOR3: 
+i_a[i]:         11111111 / 11111111 / 11111111 / 11111111 / 11111111 / 11111111 / 11111111 / 11111111 / 
+i_b[i]:         10101010 / 10101010 / 10101010 / 10101010 / 10101010 / 10101010 / 10101010 / 10101010 / 
+old_c[i]:       00100100 / 00100100 / 00100100 / 00100100 / 00100100 / 00100100 / 00100100 / 00100100 / 
+io_c[i]:        01110001 / 01110001 / 01110001 / 01110001 / 00100100 / 00100100 / 00100100 / 00100100 / 
+```
+
+</details>
+
+</br>
